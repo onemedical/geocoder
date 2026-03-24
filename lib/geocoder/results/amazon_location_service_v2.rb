@@ -6,7 +6,7 @@ module Geocoder::Result
       @result = result
       @address_data = result.address
       @position = result.position
-      super
+      super(result)
     end
 
     def coordinates
@@ -54,7 +54,7 @@ module Geocoder::Result
     end
 
     def country_code
-      @address_data.country&.code_3 if @address_data.respond_to?(:country)
+      @address_data.country&.code_2 if @address_data.respond_to?(:country)
     end
 
     def place_id

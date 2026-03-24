@@ -16,7 +16,7 @@ class AmazonLocationServiceV2Test < GeocoderTestCase
     assert_equal "NY", result.state_code
     assert_equal "10314", result.postal_code
     assert_equal "United States", result.country
-    assert_equal "USA", result.country_code
+    assert_equal "US", result.country_code
     assert_equal "Graniteville", result.neighborhood
     assert_equal "Madison Ave", result.route
   end
@@ -29,7 +29,7 @@ class AmazonLocationServiceV2Test < GeocoderTestCase
     assert_equal "NY", result.state_code
     assert_equal "10314", result.postal_code
     assert_equal "United States", result.country
-    assert_equal "USA", result.country_code
+    assert_equal "US", result.country_code
   end
 
   def test_amazon_location_service_v2_place_id
