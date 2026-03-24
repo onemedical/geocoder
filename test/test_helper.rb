@@ -602,6 +602,19 @@ module Geocoder
     ])
     MockV2ResultItem = Struct.new(:place_id, :title, :position, :address)
 
+    # Mock AWS GeoPlaces error classes for testing
+    module Aws
+      module GeoPlaces
+        module Errors
+          class ServiceError < StandardError; end
+          class AccessDeniedException < ServiceError; end
+          class ThrottlingException < ServiceError; end
+          class ValidationException < ServiceError; end
+          class InternalServerException < ServiceError; end
+        end
+      end
+    end
+
     class MockAmazonLocationServiceV2Client
       def reverse_geocode(params = {}, options = {})
         # Amazon transposes latitude and longitude, so our client does too on the outbound call and inbound data
@@ -610,6 +623,10 @@ module Geocoder
       end
 
       def geocode(params = {}, options = {})
+        raise Aws::GeoPlaces::Errors::AccessDeniedException, "access denied" if params[:query_text] == "access_denied"
+        raise Aws::GeoPlaces::Errors::ThrottlingException, "rate limited" if params[:query_text] == "throttled"
+        raise Aws::GeoPlaces::Errors::ValidationException, "invalid request" if params[:query_text] == "invalid"
+        raise Aws::GeoPlaces::Errors::InternalServerException, "server error" if params[:query_text] == "server_error"
         return mock_results if params[:query_text].include? "Madison Square Garden"
         mock_no_results
       end

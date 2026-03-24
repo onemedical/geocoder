@@ -27,6 +27,26 @@ module Geocoder::Lookup
       end
 
       resp.result_items
+    rescue Aws::GeoPlaces::Errors::AccessDeniedException => err
+      raise_error(Geocoder::RequestDenied, err.message) or
+        Geocoder.log(:warn, "Amazon Location Service v2 access denied: #{err.message}")
+      []
+    rescue Aws::GeoPlaces::Errors::ThrottlingException => err
+      raise_error(Geocoder::OverQueryLimitError, err.message) or
+        Geocoder.log(:warn, "Amazon Location Service v2 rate limit exceeded: #{err.message}")
+      []
+    rescue Aws::GeoPlaces::Errors::ValidationException => err
+      raise_error(Geocoder::InvalidRequest, err.message) or
+        Geocoder.log(:warn, "Amazon Location Service v2 invalid request: #{err.message}")
+      []
+    rescue Aws::GeoPlaces::Errors::InternalServerException => err
+      raise_error(Geocoder::ServiceUnavailable, err.message) or
+        Geocoder.log(:warn, "Amazon Location Service v2 server error: #{err.message}")
+      []
+    rescue Aws::GeoPlaces::Errors::ServiceError => err
+      raise_error(Geocoder::Error, err.message) or
+        Geocoder.log(:warn, "Amazon Location Service v2 error: #{err.message}")
+      []
     end
 
     private

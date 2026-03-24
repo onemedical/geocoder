@@ -46,4 +46,44 @@ class AmazonLocationServiceV2Test < GeocoderTestCase
     results = Geocoder.search("no results")
     assert_equal [], results
   end
+
+  def test_amazon_location_service_v2_access_denied
+    results = Geocoder.search("access_denied")
+    assert_equal [], results
+  end
+
+  def test_amazon_location_service_v2_access_denied_raises_when_configured
+    Geocoder.configure(always_raise: [Geocoder::RequestDenied])
+    assert_raises(Geocoder::RequestDenied) { Geocoder.search("access_denied") }
+  end
+
+  def test_amazon_location_service_v2_throttling
+    results = Geocoder.search("throttled")
+    assert_equal [], results
+  end
+
+  def test_amazon_location_service_v2_throttling_raises_when_configured
+    Geocoder.configure(always_raise: [Geocoder::OverQueryLimitError])
+    assert_raises(Geocoder::OverQueryLimitError) { Geocoder.search("throttled") }
+  end
+
+  def test_amazon_location_service_v2_validation_error
+    results = Geocoder.search("invalid")
+    assert_equal [], results
+  end
+
+  def test_amazon_location_service_v2_validation_error_raises_when_configured
+    Geocoder.configure(always_raise: [Geocoder::InvalidRequest])
+    assert_raises(Geocoder::InvalidRequest) { Geocoder.search("invalid") }
+  end
+
+  def test_amazon_location_service_v2_server_error
+    results = Geocoder.search("server_error")
+    assert_equal [], results
+  end
+
+  def test_amazon_location_service_v2_server_error_raises_when_configured
+    Geocoder.configure(always_raise: [Geocoder::ServiceUnavailable])
+    assert_raises(Geocoder::ServiceUnavailable) { Geocoder.search("server_error") }
+  end
 end
