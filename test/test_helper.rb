@@ -592,6 +592,86 @@ module Geocoder
       end
     end
 
+    require 'geocoder/lookups/amazon_location_service_v2'
+    MockV2ResultItems = Struct.new(:result_items)
+    MockV2Region = Struct.new(:name, :code)
+    MockV2Country = Struct.new(:name, :code_2, :code_3)
+
+    MockV2Address = Struct.new(*%i[
+      street district locality region postal_code country sub_region
+    ])
+    MockV2ResultItem = Struct.new(:place_id, :title, :position, :address)
+
+    # Mock AWS GeoPlaces error classes for testing
+    module Aws
+      module GeoPlaces
+        module Errors
+          class ServiceError < StandardError; end
+          class AccessDeniedException < ServiceError; end
+          class ThrottlingException < ServiceError; end
+          class ValidationException < ServiceError; end
+          class InternalServerException < ServiceError; end
+        end
+      end
+    end
+
+    class MockAmazonLocationServiceV2Client
+      def reverse_geocode(params = {}, options = {})
+        # Amazon transposes latitude and longitude, so our client does too on the outbound call and inbound data
+        return mock_results if params[:query_position] == [-75.676333, 45.423733]
+        mock_no_results
+      end
+
+      def geocode(params = {}, options = {})
+        raise Aws::GeoPlaces::Errors::AccessDeniedException, "access denied" if params[:query_text] == "access_denied"
+        raise Aws::GeoPlaces::Errors::ThrottlingException, "rate limited" if params[:query_text] == "throttled"
+        raise Aws::GeoPlaces::Errors::ValidationException, "invalid request" if params[:query_text] == "invalid"
+        raise Aws::GeoPlaces::Errors::InternalServerException, "server error" if params[:query_text] == "server_error"
+        return mock_results if params[:query_text].include? "Madison Square Garden"
+        mock_no_results
+      end
+
+      private
+
+      def fixture
+        eval File.read File.join("test", "fixtures", "amazon_location_service_v2_madison_square_garden")
+      end
+
+      def mock_results
+        data = fixture.dup
+        place_id = data.shift
+        title = data.shift
+        position = data.shift
+        street = data.shift
+        district = data.shift
+        locality = data.shift
+        region_name = data.shift
+        region_code = data.shift
+        postal_code = data.shift
+        country_name = data.shift
+        country_code2 = data.shift
+        country_code3 = data.shift
+        sub_region = data.shift
+
+        region = MockV2Region.new(region_name, region_code)
+        country = MockV2Country.new(country_name, country_code2, country_code3)
+        address = MockV2Address.new(street, district, locality, region, postal_code, country, sub_region)
+        result_item = MockV2ResultItem.new(place_id, title, position, address)
+        MockV2ResultItems.new([result_item])
+      end
+
+      def mock_no_results
+        MockV2ResultItems.new([])
+      end
+    end
+
+    class AmazonLocationServiceV2
+      private
+      def client
+        MockAmazonLocationServiceV2Client.new
+      end
+    end
+
     require 'geocoder/lookups/geoapify'
     class Geoapify
       private

@@ -61,6 +61,56 @@ Global Street Address Lookups
       ```
     * Via environment variables and other external methods. See **Setting AWS Credentials** in the [AWS SDK for Ruby Developer Guide](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
+### Amazon Location Service V2 (`:amazon_location_service_v2`)
+
+* **API key**: optional (uses AWS SDK default credential chain if not provided)
+* **Key signup**: https://console.aws.amazon.com/location
+* **Quota**: pay-as-you-go pricing; 20,000 free Geocode/Reverse Geocode requests per month for 3 months with AWS Free Tier
+* **Region**: world
+* **SSL support**: yes, required
+* **Languages**: BCP 47 language codes (e.g., `en`, `fr`, `de`)
+* **Extra query options** (passed per-query, e.g., `Geocoder.search("NYC", max_results: 5)`):
+  * `:max_results` - return at most this many results (1-100, default 20)
+  * `:intended_use` - `"SingleUse"` (default) or `"Storage"`
+  * `:additional_features` - array of additional features, e.g., `["TimeZone", "Access"]`
+  * `:political_view` - alpha-2 or alpha-3 country code for political view
+* **Extra query options** when geocoding only:
+  * `:bias_position` - bias results toward a given point, defined as `[longitude, latitude]`
+  * `:filter` - a `GeocodeFilter` hash to restrict results by country or place type
+  * `:query_components` - structured query with keys like `:street`, `:locality`, `:region`, `:postal_code`, `:country`
+* **Extra query options** when reverse geocoding only:
+  * `:filter` - a `ReverseGeocodeFilter` hash to restrict results
+* **Documentation**: https://docs.aws.amazon.com/location/latest/developerguide/places.html
+* **Terms of Service**: https://aws.amazon.com/service-terms
+* **Limitations**: Caching is not supported.
+* **Notes**:
+  * This lookup uses the Amazon Location Service Places V2 API (GeoPlaces), the successor to the original Amazon Location Service Places API. Unlike v1, it does not require an index name.
+  * You must install the `aws-sdk-geoplaces` gem: `gem install aws-sdk-geoplaces`
+  * You can provide credentials to the AWS SDK in multiple ways:
+    * Directly via the `api_key` parameter in the geocoder configuration:
+      ```rb
+      Geocoder.configure(
+        lookup: :amazon_location_service_v2,
+        amazon_location_service_v2: {
+          api_key: {
+            region: 'us-east-1',
+            access_key_id: 'YOUR_AWS_ACCESS_KEY_ID',
+            secret_access_key: 'YOUR_AWS_SECRET_ACCESS_KEY',
+          }
+        }
+      )
+      ```
+    * Via environment variables and other external methods. See **Setting AWS Credentials** in the [AWS SDK for Ruby Developer Guide](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+  * To set a default language for all queries:
+      ```rb
+      Geocoder.configure(
+        lookup: :amazon_location_service_v2,
+        amazon_location_service_v2: {
+          language: 'en'
+        }
+      )
+      ```
+
 ### Azure (`:azure`)
 
 * **API key**: required
